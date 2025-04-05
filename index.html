@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SportGuard - Anti-Doping Workflow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2A9D8F;
+            --secondary: #264653;
+            --accent: #E9C46A;
+            --light: #f8f9fa;
+            --danger: #E76F51;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Workflow Visualization */
+        .workflow-steps {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin: 3rem 0;
+        }
+
+        .step-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .step-card::after {
+            content: '⤷';
+            position: absolute;
+            right: -1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .step-card:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-weight: bold;
+        }
+
+        /* Login Section */
+        .login-container {
+            max-width: 400px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin: 1rem 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #238f7d;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: #1d3a4a;
+        }
+
+        /* Game/Quiz Interface */
+        .game-container {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .quiz-question {
+            margin-bottom: 2rem;
+        }
+
+        .quiz-question h3 {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .quiz-option {
+            padding: 1rem;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .quiz-option:hover {
+            background: #f0f0f0;
+            border-color: var(--primary);
+        }
+
+        .quiz-option.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quiz-option.correct {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quiz-option.incorrect {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Progress Analytics */
+        .analytics-panel {
+            background: var(--secondary);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Badges Display */
+        .badges-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .badge {
+            background: var(--accent);
+            color: var(--secondary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .badge.locked {
+            background: #eee;
+            color: #999;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 5px solid var(--primary);
+        }
+
+        .notification.error {
+            border-left: 5px solid var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Workflow Visualization -->
+        <div class="workflow-steps">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>User Login</h3>
+                <p>Secure authentication system</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Access Modules</h3>
+                <p>Interactive learning content</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Play Games</h3>
+                <p>Engaging challenges</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Earn Rewards</h3>
+                <p>Badges & achievements</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <h3>Track Progress</h3>
+                <p>Detailed analytics</p>
+            </div>
+        </div>
+
+        <!-- Login Interface -->
+        <div class="login-container" id="loginContainer">
+            <h2>Welcome to SportGuard <i class="fas fa-shield-alt"></i></h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">
+                    Login <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Game Interface -->
+        <div class="game-container" id="gameContainer">
+            <h2>Anti-Doping Quiz <i class="fas fa-brain"></i></h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="quizProgress"></div>
+            </div>
+            <div id="quizContent"></div>
+            <div class="quiz-nav">
+                <button class="btn btn-secondary" id="prevBtn" disabled>
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="btn" id="nextBtn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Analytics -->
+        <div class="analytics-panel" id="analyticsPanel">
+            <h3><i class="fas fa-chart-line"></i> Your Progress</h3>
+            <div class="stats-grid" id="progressStats"></div>
+        </div>
+
+        <!-- Badges Display -->
+        <h3><i class="fas fa-trophy"></i> Your Achievements</h3>
+        <div class="badges-container" id="badgesContainer"></div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Game State
+        let currentUser = null;
+        let progress = {
+            completedModules: 0,
+            totalPoints: 0,
+            badges: [],
+            quizAnswers: {}
+        };
+
+        // Quiz Questions
+        const quizQuestions = [
+            {
+                question: "Is caffeine prohibited during competitions?",
+                options: [
+                    { text: "Yes, it's always prohibited", correct: false },
+                    { text: "No, but it's monitored", correct: true },
+                    { text: "Only in high doses", correct: false },
+                    { text: "Only for professional athletes", correct: false }
+                ],
+                explanation: "Caffeine is not currently prohibited, but it is monitored by WADA to detect patterns of misuse."
+            },
+            {
+                question: "Which of these substances is always prohibited in sports?",
+                options: [
+                    { text: "Anabolic steroids", correct: true },
+                    { text: "Ibuprofen", correct: false },
+                    { text: "Antihistamines", correct: false },
+                    { text: "Antibiotics", correct: false }
+                ],
+                explanation: "Anabolic steroids are always prohibited in sports as they enhance performance artificially."
+            },
+            {
+                question: "What is the purpose of the Therapeutic Use Exemption (TUE)?",
+                options: [
+                    { text: "To allow use of prohibited substances for medical reasons", correct: true },
+                    { text: "To exempt athletes from testing", correct: false },
+                    { text: "To allow recreational drug use", correct: false },
+                    { text: "To reduce penalties for doping violations", correct: false }
+                ],
+                explanation: "A TUE allows athletes to use prohibited substances for legitimate medical reasons when no alternatives exist."
+            },
+            {
+                question: "When can an athlete be tested for doping?",
+                options: [
+                    { text: "Only during competitions", correct: false },
+                    { text: "Only during training", correct: false },
+                    { text: "Anytime, anywhere", correct: true },
+                    { text: "Only with prior notice", correct: false }
+                ],
+                explanation: "Athletes can be tested anytime, anywhere, without advance notice under the principle of 'whereabouts'."
+            },
+            {
+                question: "What is the minimum suspension for a first-time doping offense?",
+                options: [
+                    { text: "No suspension", correct: false },
+                    { text: "3 months", correct: false },
+                    { text: "2 years", correct: true },
+                    { text: "Lifetime ban", correct: false }
+                ],
+                explanation: "The standard sanction for a first-time anti-doping rule violation is a 4-year period of ineligibility."
+            }
+        ];
+
+        // DOM Elements
+        const loginContainer = document.getElementById('loginContainer');
+        const gameContainer = document.getElementById('gameContainer');
+        const quizContent = document.getElementById('quizContent');
+        const progressStats = document.getElementById('progressStats');
+        const badgesContainer = document.getElementById('badgesContainer');
+        const notification = document.getElementById('notification');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const quizProgress = document.getElementById('quizProgress');
+        const analyticsPanel = document.getElementById('analyticsPanel');
+
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+
+        // Login Handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                // Simulate API call
+                const response = await authenticateUser(username, password);
+                
+                currentUser = username;
+                progress = response.progress || {
+                    completedModules: 0,
+                    totalPoints: 0,
+                    badges: [],
+                    quizAnswers: {}
+                };
+                
+                showNotification('Login successful!', 'success');
+                loginContainer.style.display = 'none';
+                gameContainer.style.display = 'block';
+                analyticsPanel.style.display = 'block';
+                loadQuestion(currentQuestionIndex);
+                updateProgressDisplay();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        });
+
+        // Load Question
+        function loadQuestion(index) {
+            if (index < 0 || index >= quizQuestions.length) return;
+            
+            currentQuestionIndex = index;
+            const question = quizQuestions[index];
+            
+            quizContent.innerHTML = `
+                <div class="quiz-question">
+                    <h3>${question.question}</h3>
+                    ${question.options.map((option, i) => `
+                        <div class="quiz-option ${progress.quizAnswers[index] === i ? 'selected' : ''}" 
+                             onclick="selectOption(${i})" 
+                             data-correct="${option.correct}">
+                            ${option.text}
+                        </div>
+                    `).join('')}
+                    ${progress.quizAnswers[index] !== undefined ? `
+                        <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
+                            <strong>Explanation:</strong> ${question.explanation}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Update nav buttons
+            prevBtn.disabled = index === 0;
+            nextBtn.textContent = index === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next';
+            
+            // Update progress bar
+            quizProgress.style.width = `${((index + 1) / quizQuestions.length) * 100}%`;
+        }
+
+        // Select Option
+        window.selectOption = function(index) {
+            if (progress.quizAnswers[currentQuestionIndex] !== undefined) return;
+            
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            options[index].classList.add('selected');
+            selectedOption = index;
+        };
+
+        // Next Button
+        nextBtn.addEventListener('click', function() {
+            if (selectedOption === null && progress.quizAnswers[currentQuestionIndex] === undefined) {
+                showNotification('Please select an answer', 'error');
+                return;
+            }
+            
+            // Save answer if not already saved
+            if (progress.quizAnswers[currentQuestionIndex] === undefined) {
+                progress.quizAnswers[currentQuestionIndex] = selectedOption;
+                const isCorrect = quizQuestions[currentQuestionIndex].options[selectedOption].correct;
+                
+                if (isCorrect) {
+                    progress.totalPoints += 20;
+                    showNotification('Correct answer! +20 points', 'success');
+                    
+                    // Check if all questions answered correctly
+                    if (Object.keys(progress.quizAnswers).length === quizQuestions.length) {
+                        progress.completedModules++;
+                        progress.totalPoints += 50; // Bonus for completion
+                        
+                        // Award badges based on performance
+                        const correctAnswers = Object.keys(progress.quizAnswers).filter(
+                            qIndex => quizQuestions[qIndex].options[progress.quizAnswers[qIndex]].correct
+                        ).length;
+                        
+                        if (correctAnswers === quizQuestions.length) {
+                            if (!progress.badges.includes('Anti-Doping Expert')) {
+                                progress.badges.push('Anti-Doping Expert');
+                                showNotification('Congratulations! Earned Anti-Doping Expert badge', 'success');
+                            }
+                        } else if (correctAnswers >= quizQuestions.length * 0.8) {
+                            if (!progress.badges.includes('Knowledgeable')) {
+                                progress.badges.push('Knowledgeable');
+                                showNotification('Congratulations! Earned Knowledgeable badge', 'success');
+                            }
+                        }
+                        
+                        showNotification('Quiz completed! +50 bonus points', 'success');
+                    }
+                }
+                
+                updateProgress();
+                selectedOption = null;
+            }
+            
+            // Move to next question or finish
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            } else {
+                finishQuiz();
+            }
+        });
+
+        // Previous Button
+        prevBtn.addEventListener('click', function() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion(currentQuestionIndex);
+            }
+        });
+
+        // Finish Quiz
+        function finishQuiz() {
+            showNotification('Quiz submitted successfully!', 'success');
+            updateProgressDisplay();
+            
+            // Simulate saving progress to backend
+            saveUserProgress(currentUser, progress);
+        }
+
+        // Update Progress Display
+        function updateProgressDisplay() {
+            const correctAnswers = Object.keys(progress.quizAnswers).filter(
+                qIndex => quizQuestions[qIndex].options[progress.quizAnswers[qIndex]].correct
+            ).length;
+            
+            progressStats.innerHTML = `
+                <div class="stat-card">
+                    <h4>${progress.totalPoints}</h4>
+                    <p>Total Points</p>
+                </div>
+                <div class="stat-card">
+                    <h4>${progress.completedModules}</h4>
+                    <p>Completed Modules</p>
+                </div>
+                <div class="stat-card">
+                    <h4>${correctAnswers}/${quizQuestions.length}</h4>
+                    <p>Correct Answers</p>
+                </div>
+            `;
+            
+            // Badges
+            const allBadges = [
+                { name: 'Starter', earned: progress.completedModules > 0 },
+                { name: 'Knowledgeable', earned: progress.badges.includes('Knowledgeable') },
+                { name: 'Anti-Doping Expert', earned: progress.badges.includes('Anti-Doping Expert') },
+                { name: 'Perfect Score', earned: false }, // Placeholder for future
+                { name: 'Fast Learner', earned: false }    // Placeholder for future
+            ];
+            
+            badgesContainer.innerHTML = allBadges.map(badge => `
+                <div class="badge ${badge.earned ? '' : 'locked'}">
+                    <i class="fas ${badge.earned ? 'fa-medal' : 'fa-lock'}"></i>
+                    ${badge.name}
+                </div>
+            `).join('');
+        }
+
+        // Show Notification
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Simulated Backend Functions
+        async function authenticateUser(username, password) {
+            // In a real app, this would be an API call
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (username && password) {
+                        // Check if user exists in localStorage
+                        const users = JSON.parse(localStorage.getItem('sportguard_users')) || {};
+                        
+                        if (users[username]) {
+                            // User exists, verify password (in real app, this would be hashed)
+                            if (users[username].password === password) {
+                                resolve({
+                                    success: true,
+                                    progress: users[username].progress
+                                });
+                            } else {
+                                reject(new Error('Invalid password'));
+                            }
+                        } else {
+                            // New user
+                            users[username] = {
+                                password: password,
+                                progress: {
+                                    completedModules: 0,
+                                    totalPoints: 0,
+                                    badges: [],
+                                    quizAnswers: {}
+                                }
+                            };
+                            localStorage.setItem('sportguard_users', JSON.stringify(users));
+                            resolve({
+                                success: true,
+                                progress: users[username].progress
+                            });
+                        }
+                    } else {
+                        reject(new Error('Username and password are required'));
+                    }
+                }, 500); // Simulate network delay
+            });
+        }
+
+        async function saveUserProgress(username, progressData) {
+            // In a real app, this would be an API call
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const users = JSON.parse(localStorage.getItem('sportguard_users')) || {};
+                    if (users[username]) {
+                        users[username].progress = progressData;
+                        localStorage.setItem('sportguard_users', JSON.stringify(users));
+                    }
+                    resolve({ success: true });
+                }, 300); // Simulate network delay
+            });
+        }
+
+        // Initialize
+        analyticsPanel.style.display = 'none';
+        updateProgressDisplay();
+    </script>
+</body>
+</html>
